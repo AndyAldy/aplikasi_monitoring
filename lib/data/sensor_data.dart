@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 
 class SensorData extends ChangeNotifier {
   int _kelembapan = 0;
+  int _cahaya = 0;
+  bool _isHujan = false;
   bool _isPompaOn = false;
   bool _isOnline = false;
+  bool _isManualMode = false;
 
   int get kelembapan => _kelembapan;
+  int get cahaya => _cahaya;
+  bool get isHujan => _isHujan;
   bool get isPompaOn => _isPompaOn;
   bool get isOnline => _isOnline;
+  bool get isManualMode => _isManualMode;
 
-  // Dipanggil oleh MqttService saat ada data sensor baru
   void updateKelembapan(int newValue) {
     if (_kelembapan != newValue) {
       _kelembapan = newValue;
@@ -18,7 +23,20 @@ class SensorData extends ChangeNotifier {
     }
   }
 
-  // Dipanggil oleh MqttService (dari ESP32) untuk menyinkronkan status
+  void updateCahaya(int newValue) {
+    if (_cahaya != newValue) {
+      _cahaya = newValue;
+      notifyListeners(); 
+    }
+  }
+
+  void updateHujan(bool isHujan) {
+    if (_isHujan != isHujan) {
+      _isHujan = isHujan;
+      notifyListeners(); 
+    }
+  }
+
   void setPompaStatus(bool status) {
     if (_isPompaOn != status) {
         _isPompaOn = status;
@@ -26,14 +44,13 @@ class SensorData extends ChangeNotifier {
     }
   }
 
-  // Dipanggil oleh DashboardPage untuk mengirim perintah ke Pompa (statusnya dibalik)
-  // (Fungsi ini akan kita hapus dan pindahkan logikanya ke DashboardPage)
-  // void togglePompa() {
-  //   _isPompaOn = !_isPompaOn;
-  //   notifyListeners();
-  // }
+  void setMode(bool isManual) {
+    if (_isManualMode != isManual) {
+        _isManualMode = isManual;
+        notifyListeners();
+    }
+  }
 
-  // Metode untuk memperbarui status koneksi ESP32
   void updateStatus(bool online) {
     if (_isOnline != online) {
       _isOnline = online;

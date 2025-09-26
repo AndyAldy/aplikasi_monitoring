@@ -5,7 +5,7 @@ import 'package:aplikasi_monitoring/core/constants.dart';
 import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/presentation/widgets/control_tile.dart';
 import 'package:aplikasi_monitoring/presentation/widgets/data_gauge.dart';
-import 'package:aplikasi_monitoring/services/mqtt_services.dart'; // Wajib diimpor
+import 'package:aplikasi_monitoring/services/mqtt_services.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -13,14 +13,12 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Akses MqttService (digunakan untuk ACTION/publish)
-    // listen: false karena kita hanya butuh MqttService untuk memanggil fungsi, bukan membangun UI
     final mqttService = Provider.of<MqttService>(context, listen: false); 
     
     // Gunakan Consumer untuk mendengarkan perubahan pada SensorData
     return Consumer<SensorData>(
       builder: (context, sensorData, child) {
         return Scaffold(
-          // ... (AppBar tetap sama) ...
           appBar: AppBar(
             title: const Text('SmartFarm Dashboard', style: TextStyle(color: Colors.white)),
             backgroundColor: AppColors.primary,
@@ -51,18 +49,48 @@ class DashboardPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ================== DATA SENSOR ===================
                 const Text(
-                  "Status Lahan Saat Ini:",
+                  "Status Sensor Saat Ini:",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 const SizedBox(height: 16),
-
-                // --- Visualisasi Kelembapan
+                
                 DataGauge(
                   title: 'Kelembapan Tanah',
                   value: sensorData.kelembapan,
                 ),
+                const SizedBox(height: 10),
                 
+                DataGauge(
+                  title: 'Intensitas Cahaya',
+                  value: sensorData.cahaya,
+                  unit: ' lx',
+                ),
+                const SizedBox(height: 10),
+
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          sensorData.isHujan ? Icons.grain : Icons.wb_sunny,
+                          size: 30,
+                          color: sensorData.isHujan ? Colors.blue : AppColors.secondary,
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'Status Hujan: ${sensorData.isHujan ? "Hujan" : "Kering"}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 24),
                 const Text(
                   "Kontrol Cepat Aktuator:",
@@ -70,7 +98,6 @@ class DashboardPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // --- Kontrol Pompa dan lainnya
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -93,12 +120,13 @@ class DashboardPage extends StatelessWidget {
                       },
                     ),
                     ControlTile(
-                      title: 'Lampu Tumbuh',
-                      icon: Icons.lightbulb,
-                      isActive: false, 
-                      color: AppColors.secondary,
+                      title: 'Mode Otomatis',
+                      icon: Icons.auto_mode,
+                      isActive: !sensorData.isManualMode, // Mode Otomatis aktif jika isManualMode false
+                      color: AppColors.accent,
                       onTap: () {
-                        // Logika kontrol lampu tumbuh
+                        String newMode = sensorData.isManualMode ? "OTOMATIS" : "MANUAL";
+                        mqttService.publishControl(MqttTopics.mode, newMode);
                       },
                     ),
                   ],
