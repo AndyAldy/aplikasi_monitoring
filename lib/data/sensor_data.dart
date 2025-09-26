@@ -10,21 +10,28 @@ class SensorData extends ChangeNotifier {
   bool get isPompaOn => _isPompaOn;
   bool get isOnline => _isOnline;
 
-  // Metode untuk memperbarui data sensor
+  // Dipanggil oleh MqttService saat ada data sensor baru
   void updateKelembapan(int newValue) {
     if (_kelembapan != newValue) {
       _kelembapan = newValue;
-      notifyListeners(); // Memberi tahu widget untuk refresh
+      notifyListeners(); 
     }
   }
 
-  // Metode untuk memperbarui status aktuator
-  void togglePompa() {
-    _isPompaOn = !_isPompaOn;
-    notifyListeners();
-    // Di sini Anda seharusnya memanggil MqttService untuk mengirim perintah ke ESP32
-    // Misalnya: MqttService().publish(MqttTopics.pompaControl, _isPompaOn ? "1" : "0");
+  // Dipanggil oleh MqttService (dari ESP32) untuk menyinkronkan status
+  void setPompaStatus(bool status) {
+    if (_isPompaOn != status) {
+        _isPompaOn = status;
+        notifyListeners();
+    }
   }
+
+  // Dipanggil oleh DashboardPage untuk mengirim perintah ke Pompa (statusnya dibalik)
+  // (Fungsi ini akan kita hapus dan pindahkan logikanya ke DashboardPage)
+  // void togglePompa() {
+  //   _isPompaOn = !_isPompaOn;
+  //   notifyListeners();
+  // }
 
   // Metode untuk memperbarui status koneksi ESP32
   void updateStatus(bool online) {

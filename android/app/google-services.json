@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "229806959659",
+    "project_id": "monitoring-650f6",
+    "storage_bucket": "monitoring-650f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229806959659:android:32a679b620c1429dd54e6e",
+        "android_client_info": {
+          "package_name": "com.example.aplikasi_monitoring"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlJcMJPQPVattuiLEidrf8bA-fBSr1fBI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229806959659:android:420a6c12f9312f49d54e6e",
+        "android_client_info": {
+          "package_name": "com.monitoring.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlJcMJPQPVattuiLEidrf8bA-fBSr1fBI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

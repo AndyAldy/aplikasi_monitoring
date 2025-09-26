@@ -16,6 +16,7 @@ class DataGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tentukan warna indikator berdasarkan nilai
     final Color indicatorColor = value > 60 ? AppColors.accent : AppColors.secondary;
 
     return Card(

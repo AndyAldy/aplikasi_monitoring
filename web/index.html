@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script type="text/javascript">
+  // Konfigurasi ini harus diganti dengan nilai dari Firebase Console Anda!
+  // Ambil nilai API Key, Project ID, dll. dari 'lib/firebase_options.dart'
+  // dan masukkan ke sini sebagai variabel global 'firebaseConfig'.
+  const firebaseConfig = {
+    apiKey: 'AIzaSyCtkPDjwxSPfVDsjT4eDKF1wdjxl9EtRoI',
+    appId: '1:229806959659:web:33236f97bddb5ff8d54e6e',
+    messagingSenderId: '229806959659',
+    projectId: 'monitoring-650f6',
+    authDomain: 'monitoring-650f6.firebaseapp.com',
+    storageBucket: 'monitoring-650f6.firebasestorage.app',
+    measurementId: 'G-7J0VTPJRWX',
+  };
+
+  // Inisialisasi Firebase di environment JavaScript
+  // Ini harus dilakukan sebelum Flutter memanggil Firebase.initializeApp()
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+  }
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.

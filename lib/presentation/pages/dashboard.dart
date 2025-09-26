@@ -1,20 +1,26 @@
-// lib/presentation/pages/dashboard_page.dart
+// lib/presentation/pages/dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aplikasi_monitoring/core/constants.dart';
 import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/presentation/widgets/control_tile.dart';
 import 'package:aplikasi_monitoring/presentation/widgets/data_gauge.dart';
+import 'package:aplikasi_monitoring/services/mqtt_services.dart'; // Wajib diimpor
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Akses MqttService (digunakan untuk ACTION/publish)
+    // listen: false karena kita hanya butuh MqttService untuk memanggil fungsi, bukan membangun UI
+    final mqttService = Provider.of<MqttService>(context, listen: false); 
+    
     // Gunakan Consumer untuk mendengarkan perubahan pada SensorData
     return Consumer<SensorData>(
       builder: (context, sensorData, child) {
         return Scaffold(
+          // ... (AppBar tetap sama) ...
           appBar: AppBar(
             title: const Text('SmartFarm Dashboard', style: TextStyle(color: Colors.white)),
             backgroundColor: AppColors.primary,
@@ -79,17 +85,20 @@ class DashboardPage extends StatelessWidget {
                       isActive: sensorData.isPompaOn,
                       color: AppColors.primary,
                       onTap: () {
-                        // Memanggil fungsi untuk mengubah status dan mengirim perintah
-                        sensorData.togglePompa();
+                        // Tentukan perintah berdasarkan status saat ini
+                        String newCommand = sensorData.isPompaOn ? "OFF" : "ON";
+                        
+                        // Kirim perintah via MQTT Service
+                        mqttService.publishControl(MqttTopics.pompaControl, newCommand);
                       },
                     ),
                     ControlTile(
                       title: 'Lampu Tumbuh',
                       icon: Icons.lightbulb,
-                      isActive: false, // Contoh perangkat mati
+                      isActive: false, 
                       color: AppColors.secondary,
                       onTap: () {
-                        // Logika kontrol perangkat lain
+                        // Logika kontrol lampu tumbuh
                       },
                     ),
                   ],

@@ -1,15 +1,18 @@
+// lib/services/mqtt_services.dart
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:aplikasi_monitoring/core/constants.dart';
-
-// Import model untuk memperbarui data
+import 'package:aplikasi_monitoring/data/sensor_data.dart'; // Import model data
 
 class MqttService {
   late MqttServerClient client;
+  final SensorData _sensorData; // Tambahkan referensi ke SensorData
   
-  // Konfigurasi ini harus disesuaikan dengan broker Anda
-  final String server = 'broker.hivemq.com'; // Contoh Broker Publik
-  final String clientId = 'Aplikasi Monitoring Jeruk';
+  // Constructor baru untuk menerima SensorData
+  MqttService({required SensorData sensorData}) : _sensorData = sensorData; 
+  
+  final String server = 'broker.hivemq.com'; 
+  final String clientId = 'AplikasiMonitoringClient-${DateTime.now().millisecondsSinceEpoch}';
 
   Future<void> connect() async {
     client = MqttServerClient(server, clientId);
@@ -25,9 +28,11 @@ class MqttService {
 
     if (client.connectionStatus!.state == MqttConnectionState.connected) {
       print('MQTT client connected');
-      // Berlangganan (Subscribe) ke topik yang relevan
+      _sensorData.updateStatus(true); // Update status koneksi di UI
+      
       client.subscribe(MqttTopics.kelembapan, MqttQos.atMostOnce);
       client.subscribe(MqttTopics.statusOnline, MqttQos.atMostOnce);
+      client.subscribe(MqttTopics.pompaControl, MqttQos.atMostOnce); // Langganan untuk balasan/konfirmasi
       
       // Setup listener untuk pesan masuk
       client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
@@ -36,18 +41,43 @@ class MqttService {
         final String topic = c[0].topic;
         
         print('Received message on topic: $topic, payload: $payload');
-
+        _handleIncomingMessage(topic, payload);
       });
     } else {
+      _sensorData.updateStatus(false);
       print('ERROR: MQTT connection failed - status ${client.connectionStatus}');
     }
   }
 
-  void publish(String topic, String message) {
+  void _handleIncomingMessage(String topic, String payload) {
+    if (topic == MqttTopics.kelembapan) {
+        try {
+            int kelembapanValue = int.parse(payload);
+            _sensorData.updateKelembapan(kelembapanValue);
+        } catch (e) {
+            print("Error parsing kelembapan payload: $e");
+        }
+    } else if (topic == MqttTopics.statusOnline) {
+         _sensorData.updateStatus(payload == 'online');
+    } else if (topic == MqttTopics.pompaControl) {
+        // Update status pompa berdasarkan pesan dari ESP32
+        _sensorData.setPompaStatus(payload == 'ON');
+    }
+  }
+
+  // Ganti nama publish menjadi publishControl agar lebih jelas fungsinya
+  void publishControl(String topic, String message) { 
     if (client.connectionStatus?.state == MqttConnectionState.connected) {
       final builder = MqttClientPayloadBuilder();
       builder.addString(message);
       client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+      
+      // Update status pompa secara optimistik di UI (opsional, tapi baik)
+      if (topic == MqttTopics.pompaControl) {
+          _sensorData.setPompaStatus(message == 'ON');
+      }
+    } else {
+       print('MQTT client not connected. Command not sent.');
     }
   }
 }

@@ -1,7 +1,7 @@
 // lib/core/constants.dart
 import 'package:flutter/material.dart';
 
-// Palet Warna
+// Palet Warna (Sesuai saran UI/UX)
 class AppColors {
   static const Color primary = Color(0xFF006A4E); // Hijau Tua
   static const Color secondary = Color(0xFFFFB000); // Kuning Amber

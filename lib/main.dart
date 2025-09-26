@@ -1,19 +1,44 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart'; // Wajib diimpor
+// Wajib: Import file yang dibuat oleh flutterfire configure
+import 'package:aplikasi_monitoring/firebase_options.dart'; 
+
 import 'package:aplikasi_monitoring/core/constants.dart';
 import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/presentation/pages/dashboard.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
 
-void main() {
-  // Inisialisasi Service dan sambungkan MQTT
-  final mqttService = MqttService();
-  mqttService.connect();
+void main() async { 
+  // 1. Wajib: Memastikan binding widget sudah diinisialisasi
+  WidgetsFlutterBinding.ensureInitialized(); 
+
+  // 2. Wajib: Inisialisasi Firebase menggunakan options dari file yang di-generate
+  // Kegagalan di sini adalah penyebab utama hang/stuck.
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform, 
+    );
+  } catch (e) {
+    // Tambahkan log untuk melihat error yang tersembunyi
+    print("FATAL FIREBASE INIT ERROR: $e"); 
+    // Jika gagal, pastikan aplikasi tetap berjalan (opsional, tapi disarankan)
+  }
+
+  // 3. Inisialisasi Model dan Service
+  final sensorData = SensorData();
+  final mqttService = MqttService(sensorData: sensorData);
+
+  // Sambungkan MQTT (tidak perlu await, jalankan di background)
+  mqttService.connect(); 
   
   runApp(
-    // Menggunakan ChangeNotifierProvider untuk SensorData
-    ChangeNotifierProvider(
-      create: (context) => SensorData(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: sensorData),
+        Provider<MqttService>.value(value: mqttService), 
+      ],
       child: const SmartFarmApp(),
     ),
   );
