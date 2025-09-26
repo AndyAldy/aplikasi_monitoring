@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Palet Warna
 class AppColors {
   static const Color primary = Color(0xFF006A4E);
   static const Color secondary = Color(0xFFFFB000);

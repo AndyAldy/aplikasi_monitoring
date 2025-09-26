@@ -1,4 +1,4 @@
-// lib/presentation/pages/dashboard.dart
+// lib/presentation/pages/dashboard.dart (VERSI FINAL YANG BENAR)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aplikasi_monitoring/core/constants.dart';
@@ -12,13 +12,14 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Akses MqttService (digunakan untuk ACTION/publish)
+    // Akses MqttService dengan listen: false karena kita hanya butuh fungsinya
     final mqttService = Provider.of<MqttService>(context, listen: false); 
     
-    // Gunakan Consumer untuk mendengarkan perubahan pada SensorData
+    // Consumer digunakan untuk membaca data SensorData
     return Consumer<SensorData>(
       builder: (context, sensorData, child) {
         return Scaffold(
+          // ... (AppBar tetap sama) ...
           appBar: AppBar(
             title: const Text('SmartFarm Dashboard', style: TextStyle(color: Colors.white)),
             backgroundColor: AppColors.primary,
@@ -93,7 +94,7 @@ class DashboardPage extends StatelessWidget {
 
                 const SizedBox(height: 24),
                 const Text(
-                  "Kontrol Cepat Aktuator:",
+                  "Fast Control from Home:",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 const SizedBox(height: 16),
@@ -106,26 +107,30 @@ class DashboardPage extends StatelessWidget {
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
                   children: [
+                    // TILE 1: Pompa Air (Kontrol ON/OFF)
                     ControlTile(
                       title: 'Pompa Air',
                       icon: Icons.water_drop,
                       isActive: sensorData.isPompaOn,
                       color: AppColors.primary,
                       onTap: () {
-                        // Tentukan perintah berdasarkan status saat ini
+                        // Akses state saat ini melalui sensorData
                         String newCommand = sensorData.isPompaOn ? "OFF" : "ON";
-                        
-                        // Kirim perintah via MQTT Service
+                        // Kirim perintah via MqttService
                         mqttService.publishControl(MqttTopics.pompaControl, newCommand);
                       },
                     ),
+                    
+                    // TILE 2: Mode Otomatis
                     ControlTile(
                       title: 'Mode Otomatis',
                       icon: Icons.auto_mode,
-                      isActive: !sensorData.isManualMode, // Mode Otomatis aktif jika isManualMode false
+                      isActive: !sensorData.isManualMode, // TRUE jika mode OTOMATIS
                       color: AppColors.accent,
                       onTap: () {
+                        // Akses state saat ini
                         String newMode = sensorData.isManualMode ? "OTOMATIS" : "MANUAL";
+                        // Kirim perintah via MqttService
                         mqttService.publishControl(MqttTopics.mode, newMode);
                       },
                     ),

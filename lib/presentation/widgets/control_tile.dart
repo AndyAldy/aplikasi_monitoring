@@ -28,7 +28,7 @@ class ControlTile extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: [ // <-- Hapus semua kode GridView di sini!
             Icon(
               icon,
               size: 40,
