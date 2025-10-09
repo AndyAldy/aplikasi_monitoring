@@ -4,11 +4,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:aplikasi_monitoring/firebase_options.dart';
 import 'package:aplikasi_monitoring/core/constants.dart';
 import 'package:aplikasi_monitoring/data/sensor_data.dart';
-import 'package:aplikasi_monitoring/presentation/pages/dashboard.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
+import 'package:aplikasi_monitoring/presentation/pages/splash.dart'; // Tambahkan import ini
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi Firebase
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -16,10 +18,14 @@ void main() async {
   } catch (e) {
     print("FATAL FIREBASE INIT ERROR: $e");
   }
+  
+  // Inisialisasi Model dan Service
   final sensorData = SensorData();
   final mqttService = MqttService(sensorData: sensorData);
-  mqttService.connect();
   
+  // PENTING: Panggilan connect() dipindahkan ke SplashScreen untuk di-await.
+  // Kode ini sekarang bersih dan hanya melakukan setup dasar.
+
   runApp(
     MultiProvider(
       providers: [
@@ -50,7 +56,9 @@ class SmartFarmApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         useMaterial3: true,
       ),
-      home: const DashboardPage(),
+      // --- Mengarahkan ke SplashScreen sebagai home awal ---
+      home: const SplashScreen(), 
+      // ---------------------------------------------------
     );
   }
 }
