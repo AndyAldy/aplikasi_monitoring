@@ -1,3 +1,4 @@
+// lib/data/sensor_data.dart (SUDAH DISESUAIKAN)
 import 'package:flutter/material.dart';
 
 class SensorData extends ChangeNotifier {
@@ -22,49 +23,35 @@ class SensorData extends ChangeNotifier {
 
   void updateKelembapan(int newValue) {
     // Memastikan nilai Kelembapan di batas 0-100%
-    newValue = newValue.clamp(0, 100); 
-    if (_kelembapan != newValue) {
-      _kelembapan = newValue;
-      notifyListeners(); 
-    }
+    _kelembapan = newValue.clamp(0, 100); 
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
 
   void updateCahaya(int newValue) {
     // Memastikan nilai Cahaya di batas 0-100%
-    newValue = newValue.clamp(0, 100);
-    if (_cahaya != newValue) {
-      _cahaya = newValue;
-      notifyListeners(); 
-    }
+    _cahaya = newValue.clamp(0, 100);
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
   
   // --- METHODS UNTUK UPDATE STATUS KONTROL ---
 
   void updateHujan(bool isHujan) {
-    if (_isHujan != isHujan) {
-      _isHujan = isHujan;
-      notifyListeners(); 
-    }
+    _isHujan = isHujan;
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
 
   void setPompaStatus(bool status) {
-    if (_isPompaOn != status) {
-      _isPompaOn = status;
-      notifyListeners();
-    }
+    _isPompaOn = status;
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
 
   void setMode(bool isManual) {
-    if (_isManualMode != isManual) {
-      _isManualMode = isManual;
-      notifyListeners();
-    }
+    _isManualMode = isManual;
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
 
   void updateStatus(bool online) {
-    if (_isOnline != online) {
-      _isOnline = online;
-      notifyListeners();
-    }
+    _isOnline = online;
+    notifyListeners(); // Kondisi 'if' dihapus, notifikasi selalu dipanggil
   }
 }
