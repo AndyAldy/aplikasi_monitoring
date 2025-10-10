@@ -45,6 +45,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() async {
+    // **PERBAIKAN**: Panggil Provider langsung di sini.
+    // Ini sekarang aman karena urutan di main.dart sudah benar.
     final authService = Provider.of<AuthService>(context, listen: false);
     setState(() => _isLoading = true);
 
@@ -54,11 +56,8 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text.trim(),
       );
       
-      // **PERBAIKAN KUNCI DI SINI**
-      // Panggil fungsi untuk menyimpan email setelah login berhasil.
       await _saveUserSession(_emailController.text.trim());
 
-      // Navigasi selanjutnya akan ditangani oleh AuthGate
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,7 +93,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // UI tidak ada perubahan, hanya logika di atas yang diperbaiki
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(

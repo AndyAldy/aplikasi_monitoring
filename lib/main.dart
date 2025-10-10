@@ -11,12 +11,14 @@ import 'package:aplikasi_monitoring/services/auth_gate.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
+  // **PERBAIKAN 1**: Pastikan ini adalah baris pertama.
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
   );
   
+  // **PERBAIKAN 2**: Inisialisasi semua service SETELAH ensureInitialized().
   final notificationService = NotificationService();
   await notificationService.init();
 
@@ -34,8 +36,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: sensorData),
         Provider<MqttService>.value(value: mqttService),
-        // **SINKRONISASI**: Daftarkan AuthService di sini
-        Provider<AuthService>.value(value: authService), 
+        Provider<AuthService>.value(value: authService),
       ],
       child: const SmartFarmApp(),
     ),
