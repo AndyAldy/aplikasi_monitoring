@@ -4,8 +4,9 @@ import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/presentation/pages/dashboard.dart';
 import 'package:aplikasi_monitoring/presentation/pages/history.dart';
 import 'package:aplikasi_monitoring/core/constants.dart';
+import 'package:aplikasi_monitoring/services/auth_service.dart';
+import 'package:aplikasi_monitoring/services/mqtt_services.dart'; 
 
-// Widget ini menjadi halaman utama baru yang berisi navigasi
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -80,11 +81,27 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final mqttService = Provider.of<MqttService>(context, listen: false); // Ambil MqttService
+
     return Scaffold(
-      // IndexedStack menjaga state setiap halaman saat berpindah tab
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+      appBar: AppBar(
+        title: Text(_selectedIndex == 0 ? 'SmartFarm Dashboard' : 'Riwayat Penyiraman', style: const TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).primaryColor,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              // Panggil signOut dengan memberikan MqttService
+              await authService.signOut(mqttService); 
+            },
+            tooltip: 'Logout',
+          ),
+        ],
+      ),
+      body: Center(
+        child: _pages.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -98,7 +115,6 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: AppColors.primary,
         onTap: _onItemTapped,
       ),
     );

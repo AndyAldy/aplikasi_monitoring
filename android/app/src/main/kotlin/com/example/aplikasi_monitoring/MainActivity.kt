@@ -1,5 +1,13 @@
 package com.example.aplikasi_monitoring
 
-import io.flutter.embedding.android.FlutterActivity
+// Import FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugins.GeneratedPluginRegistrant
 
-class MainActivity : FlutterActivity()
+// Ganti FlutterActivity menjadi FlutterFragmentActivity
+class MainActivity: FlutterFragmentActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+    }
+}
