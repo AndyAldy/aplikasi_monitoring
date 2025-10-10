@@ -3,7 +3,7 @@ import 'package:aplikasi_monitoring/core/constants.dart';
 
 class DataGauge extends StatelessWidget {
   final String title;
-  final int value; // Nilai persentase 0-100
+  final int value;
   final String unit;
   
   const DataGauge({
@@ -15,17 +15,16 @@ class DataGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tentukan warna indikator berdasarkan nilai
     final Color indicatorColor = value > 60 ? AppColors.accent : AppColors.secondary;
     
-    // Tentukan nilai tampilan dan progres bar
-    final displayValue = value == 0 ? '--' : '$value';
-    final progressValue = value == 0 ? 0.0 : value / 100;
-    
-    // Teks keterangan saat nilai nol
-    final detailText = value == 0 
-      ? 'Menunggu data...' 
-      : (value < 30 ? 'Kering' : (value > 70 ? 'Basah' : 'Normal'));
+    // --- LOGIKA TEKS DETAIL BARU ---
+    String detailText;
+    if (title == 'Kelembapan Tanah') {
+      detailText = value < 30 ? 'Kering' : (value > 70 ? 'Basah' : 'Normal');
+    } else { // Asumsi untuk Intensitas Cahaya
+      detailText = value < 30 ? 'Gelap' : (value > 70 ? 'Sangat Terang' : 'Normal');
+    }
+    // --------------------------------
 
     return Card(
       elevation: 4,
@@ -41,7 +40,7 @@ class DataGauge extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: progressValue,
+              value: value / 100,
               minHeight: 12,
               borderRadius: BorderRadius.circular(6),
               backgroundColor: Colors.grey[300],
@@ -49,16 +48,16 @@ class DataGauge extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Diubah menjadi spaceBetween
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   detailText,
-                  style: TextStyle(fontSize: 14, color: value == 0 ? Colors.grey : Colors.black87),
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
                 ),
                 Row(
                   children: [
                     Text(
-                      displayValue,
+                      '$value',
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     Text(

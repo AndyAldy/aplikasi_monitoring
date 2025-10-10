@@ -15,4 +15,5 @@ class MqttTopics {
   static const String pompaControl = "/smartfarm/control/pompa";
   static const String mode = "/smartfarm/control/mode";
   static const String statusOnline = "/smartfarm/status";
+  static const String riwayatPenyiraman = "/smartfarm/history/penyiraman";
 }
