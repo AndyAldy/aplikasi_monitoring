@@ -7,7 +7,7 @@ import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
 import 'package:aplikasi_monitoring/services/notif.dart';
 import 'package:aplikasi_monitoring/services/auth_service.dart';
-import 'package:aplikasi_monitoring/services/auth_gate.dart'; // Ganti path import
+import 'package:aplikasi_monitoring/services/auth_gate.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -22,9 +22,8 @@ void main() async {
 
   await initializeDateFormatting('id_ID', null);
   
-  // Inisialisasi semua services di sini
   final sensorData = SensorData();
-  final authService = AuthService(); // AuthService dibuat
+  final authService = AuthService();
   final mqttService = MqttService(
     sensorData: sensorData,
     notificationService: notificationService,
@@ -35,7 +34,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: sensorData),
         Provider<MqttService>.value(value: mqttService),
-        // DAFTARKAN AuthService di sini agar bisa diakses di seluruh aplikasi
+        // **SINKRONISASI**: Daftarkan AuthService di sini
         Provider<AuthService>.value(value: authService), 
       ],
       child: const SmartFarmApp(),
@@ -62,7 +61,6 @@ class SmartFarmApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         useMaterial3: true,
       ),
-      // JADIKAN AuthGate sebagai halaman pertama
       home: const AuthGate(),
     );
   }

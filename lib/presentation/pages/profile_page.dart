@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aplikasi_monitoring/services/auth_service.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
+import 'package:aplikasi_monitoring/services/auth_gate.dart'; // Import AuthGate
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -14,7 +15,6 @@ class ProfilePage extends StatelessWidget {
     final mqttService = Provider.of<MqttService>(context, listen: false);
     final User? currentUser = FirebaseAuth.instance.currentUser;
 
-    // Future untuk mengambil data user dari Firestore
     Future<DocumentSnapshot> getUserData() {
       return FirebaseFirestore.instance
           .collection('users')
@@ -34,14 +34,10 @@ class ProfilePage extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
+          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text('Gagal memuat data pengguna.'));
           }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Data pengguna tidak ditemukan.'));
-          }
 
-          // Ambil data dari dokumen Firestore
           final userData = snapshot.data!.data() as Map<String, dynamic>;
           final username = userData['username'] ?? 'Tanpa Nama';
           final email = userData['email'] ?? 'Tanpa Email';
@@ -78,8 +74,18 @@ class ProfilePage extends StatelessWidget {
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
                 onTap: () async {
+                  // Lakukan proses sign out
                   await authService.signOut(mqttService);
-                  // AuthGate akan otomatis mengarahkan ke halaman login
+                  
+                  // **PERBAIKAN KUNCI DI SINI**
+                  // Gunakan pushAndRemoveUntil untuk membersihkan semua halaman
+                  // dan menampilkan AuthGate sebagai halaman baru.
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const AuthGate()),
+                      (Route<dynamic> route) => false, // Predikat ini menghapus semua rute sebelumnya
+                    );
+                  }
                 },
               ),
               const Divider(),

@@ -11,7 +11,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final TextEditingController _usernameController = TextEditingController(); // Controller untuk username
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -20,10 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final authService = Provider.of<AuthService>(context, listen: false);
     if (_usernameController.text.isEmpty) {
        ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Username tidak boleh kosong'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('Username tidak boleh kosong')),
       );
       return;
     }
@@ -31,25 +28,19 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
+      // **SINKRONISASI**: Kirim username ke service
       await authService.createUserWithEmailAndPassword(
-        _emailController.text,
-        _passwordController.text,
-        _usernameController.text, // Kirim username ke service
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _usernameController.text.trim(),
       );
-      if (mounted) {
-        Navigator.pop(context); // Kembali ke halaman login setelah berhasil
-      }
+      if (mounted) Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Registrasi Gagal'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.message ?? 'Registrasi Gagal')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -63,7 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Kolom input untuk Username
+              // **SINKRONISASI**: Kolom input untuk Username
               TextField(
                 controller: _usernameController,
                 decoration: const InputDecoration(
