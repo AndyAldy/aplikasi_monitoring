@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:aplikasi_monitoring/presentation/pages/register_page.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,19 +17,46 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _isBiometricAvailable = false;
+  String _lastUserEmail = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserSession();
+  }
+
+  // Fungsi untuk memuat sesi terakhir dari local storage
+  Future<void> _loadUserSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastEmail = prefs.getString('lastUserEmail');
+    if (lastEmail != null && lastEmail.isNotEmpty) {
+      setState(() {
+        _emailController.text = lastEmail;
+        _lastUserEmail = lastEmail;
+        _isBiometricAvailable = true;
+      });
+    }
+  }
+
+  // Fungsi untuk menyimpan sesi setelah login berhasil
+  Future<void> _saveUserSession(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastUserEmail', email);
+  }
 
   void _login() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       await authService.signInWithEmailAndPassword(
         _emailController.text,
         _passwordController.text,
       );
-      // Navigasi akan ditangani oleh AuthGate
+      // Simpan sesi email setelah berhasil login
+      await _saveUserSession(_emailController.text);
+      // Navigasi selanjutnya akan ditangani oleh AuthGate secara otomatis
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -38,31 +66,31 @@ class _LoginPageState extends State<LoginPage> {
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
   void _loginWithBiometrics() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final bool didAuthenticate = await authService.authenticateWithBiometrics();
+    final didAuthenticate = await authService.authenticateWithBiometrics();
+    
+    // NOTE: Logika ini disederhanakan.
+    // Login biometrik yang aman seharusnya menggunakan token yang disimpan di Secure Storage,
+    // bukan password. Untuk saat ini, kita hanya akan memvalidasi sidik jari.
+    // Jika berhasil, AuthGate akan mendeteksi sesi login Firebase yang sudah ada
+    // dari startup aplikasi sebelumnya dan melanjutkan.
     if (didAuthenticate) {
-      // Jika berhasil, coba login dengan kredensial tersimpan
-      // Di implementasi nyata, Anda akan menyimpan email/token setelah login pertama
-      // Untuk demo ini, kita asumsikan pengguna perlu memasukkan email sekali
-      if (_emailController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Silakan masukkan email Anda untuk login biometrik pertama kali.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-      // Logika untuk mengambil password dari secure storage (tidak diimplementasikan di sini)
-      // dan login
+        // Cukup biarkan AuthGate yang bekerja jika user sudah login.
+        // Jika tidak, tampilkan pesan.
+        if (FirebaseAuth.instance.currentUser == null) {
+             ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                content: Text('Sesi tidak ditemukan. Silakan login dengan password terlebih dahulu.'),
+                backgroundColor: Colors.orange,
+                ),
+            );
+        }
     }
   }
 
@@ -78,20 +106,17 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Icon(Icons.eco, size: 80, color: Theme.of(context).primaryColor),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Selamat Datang',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              if (_lastUserEmail.isNotEmpty)
+                Text(
+                  _lastUserEmail,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[700], fontSize: 16),
                 ),
-              ),
-              const Text(
-                'Masuk ke akun SmartFarm Anda',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
               const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
@@ -129,15 +154,13 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
                       ),
                       child: const Text('Login'),
                     ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _loginWithBiometrics,
+                // Tombol akan nonaktif jika _isBiometricAvailable bernilai false
+                onPressed: _isBiometricAvailable ? _loginWithBiometrics : null,
                 icon: const Icon(Icons.fingerprint),
                 label: const Text('Login dengan Sidik Jari'),
                 style: ElevatedButton.styleFrom(
@@ -145,9 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                   backgroundColor: Colors.white,
                   side: BorderSide(color: Theme.of(context).primaryColor),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  disabledBackgroundColor: Colors.grey[200], // Warna saat nonaktif
                 ),
               ),
               const SizedBox(height: 20),

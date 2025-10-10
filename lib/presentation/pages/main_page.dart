@@ -81,8 +81,9 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Ambil instance service dari Provider
     final authService = Provider.of<AuthService>(context, listen: false);
-    final mqttService = Provider.of<MqttService>(context, listen: false); // Ambil MqttService
+    final mqttService = Provider.of<MqttService>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(

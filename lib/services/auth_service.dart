@@ -36,12 +36,13 @@ class AuthService {
     }
   }
 
-  // Logout
+  // Logout (Fungsi yang disesuaikan)
   Future<void> signOut(MqttService mqttService) async {
-    // Putuskan koneksi MQTT sebelum logout
-    if (mqttService.client.connectionStatus!.state == MqttConnectionState.connected) {
+    // Cek dulu apakah MQTT client terkoneksi sebelum mencoba disconnect
+    if (mqttService.client.connectionStatus?.state == MqttConnectionState.connected) {
       mqttService.client.disconnect();
     }
+    // Setelah itu, baru logout dari Firebase
     await _firebaseAuth.signOut();
   }
 
