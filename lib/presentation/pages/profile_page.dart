@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:aplikasi_monitoring/services/auth_service.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
-import 'package:aplikasi_monitoring/services/auth_gate.dart'; // Import AuthGate
+import 'package:aplikasi_monitoring/presentation/pages/auth_gate.dart'; // Import AuthGate
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});

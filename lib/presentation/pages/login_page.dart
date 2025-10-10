@@ -17,6 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+
+  bool _isSessionLoading = true;
   bool _isBiometricAvailable = false;
   String _lastUserEmail = '';
 
@@ -29,12 +31,15 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _loadUserSession() async {
     final prefs = await SharedPreferences.getInstance();
     final lastEmail = prefs.getString('lastUserEmail');
-    if (lastEmail != null && lastEmail.isNotEmpty) {
-      if (!mounted) return;
+    
+    if (mounted) {
       setState(() {
-        _emailController.text = lastEmail;
-        _lastUserEmail = lastEmail;
-        _isBiometricAvailable = true;
+        if (lastEmail != null && lastEmail.isNotEmpty) {
+          _emailController.text = lastEmail;
+          _lastUserEmail = lastEmail;
+          _isBiometricAvailable = true;
+        }
+        _isSessionLoading = false;
       });
     }
   }
@@ -45,8 +50,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() async {
-    // **PERBAIKAN**: Panggil Provider langsung di sini.
-    // Ini sekarang aman karena urutan di main.dart sudah benar.
     final authService = Provider.of<AuthService>(context, listen: false);
     setState(() => _isLoading = true);
 
@@ -55,21 +58,15 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      
+      // PENTING: Simpan sesi setelah login berhasil
       await _saveUserSession(_emailController.text.trim());
-
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Login Gagal'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.message ?? 'Login Gagal')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -78,12 +75,11 @@ class _LoginPageState extends State<LoginPage> {
     final didAuthenticate = await authService.authenticateWithBiometrics();
 
     if (!mounted) return;
-
     if (didAuthenticate) {
       if (FirebaseAuth.instance.currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Sesi tidak ditemukan. Silakan login dengan password terlebih dahulu.'),
+            content: Text('Sesi tidak ditemukan. Silakan login dengan password.'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -95,87 +91,85 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Icon(Icons.eco, size: 80, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 16),
-              const Text(
-                'Selamat Datang',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              if (_lastUserEmail.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    _lastUserEmail,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                  ),
-                ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _login,
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                      child: const Text('Login'),
+        child: _isSessionLoading
+            ? const CircularProgressIndicator()
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Icon(Icons.eco, size: 80, color: Theme.of(context).primaryColor),
+                    const SizedBox(height: 16),
+                    const Text('Selamat Datang', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                    if (_lastUserEmail.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          _lastUserEmail,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                        ),
+                      ),
+                    const SizedBox(height: 40),
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
                     ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _isBiometricAvailable ? _loginWithBiometrics : null,
-                icon: const Icon(Icons.fingerprint),
-                label: const Text('Login dengan Sidik Jari'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Theme.of(context).primaryColor,
-                  backgroundColor: Colors.white,
-                  side: BorderSide(color: Theme.of(context).primaryColor),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  disabledBackgroundColor: Colors.grey[200],
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                            onPressed: _login,
+                            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                            child: const Text('Login'),
+                          ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _isBiometricAvailable ? _loginWithBiometrics : null,
+                      icon: const Icon(Icons.fingerprint),
+                      label: const Text('Login dengan Sidik Jari'),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: Colors.white,
+                        side: BorderSide(color: Theme.of(context).primaryColor),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        disabledBackgroundColor: Colors.grey[200],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Belum punya akun?"),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterPage())),
+                          child: const Text('Daftar di sini'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Belum punya akun?"),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterPage())),
-                    child: const Text('Daftar di sini'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

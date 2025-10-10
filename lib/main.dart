@@ -7,18 +7,18 @@ import 'package:aplikasi_monitoring/data/sensor_data.dart';
 import 'package:aplikasi_monitoring/services/mqtt_services.dart';
 import 'package:aplikasi_monitoring/services/notif.dart';
 import 'package:aplikasi_monitoring/services/auth_service.dart';
-import 'package:aplikasi_monitoring/services/auth_gate.dart';
+import 'package:aplikasi_monitoring/presentation/pages/auth_gate.dart'; 
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
-  // **PERBAIKAN 1**: Pastikan ini adalah baris pertama.
+  // Pastikan ini adalah baris pertama
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  // **PERBAIKAN 2**: Inisialisasi semua service SETELAH ensureInitialized().
+  // Inisialisasi semua service SETELAH ensureInitialized
   final notificationService = NotificationService();
   await notificationService.init();
 
@@ -36,7 +36,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: sensorData),
         Provider<MqttService>.value(value: mqttService),
-        Provider<AuthService>.value(value: authService),
+        // Daftarkan AuthService di sini
+        Provider<AuthService>.value(value: authService), 
       ],
       child: const SmartFarmApp(),
     ),
@@ -62,6 +63,7 @@ class SmartFarmApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         useMaterial3: true,
       ),
+      // Jadikan AuthGate sebagai halaman pembuka
       home: const AuthGate(),
     );
   }
